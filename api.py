@@ -4,19 +4,29 @@ import io
 import numpy as np
 import matplotlib.pyplot as plt
 from fastapi.responses import StreamingResponse
+from ultralytics import YOLO
 
 import cv2 as cv
 
 app = FastAPI()
+face_detect = YOLO("yolo11s.pt")
+
 
 @app.post("/file")
 async def create_files(file: bytes = File(...)):
     stream = io.BytesIO(file)
     
     nparr = np.asarray(bytearray(stream.read()), dtype="uint8")
-    image = cv.imdecode(nparr, cv.IMREAD_COLOR)
+    image = cv.cvtColor(cv.imdecode(nparr, cv.IMREAD_COLOR),  cv.COLOR_BGR2RGB)
+
+    pred = face_detect.predict(image)[0]
+    for detect in pred.boxes.data.tolist():
+            minx, miny, maxx, maxy, score, class_id = detect
+            processed_image =  cv.rectangle(image, (int(minx), int(miny)),
+                        (int(maxx), int(maxy)), (0, 0, 255), 2)
+
     
-    cv.imwrite("123.png", image)
+    cv.imwrite("123.png", processed_image)
     
     output = FileResponse(path="123.png")
 
@@ -32,11 +42,17 @@ async def create_files(files: list[UploadFile] = File(...)):
         contents = await file.read()
         stream = io.BytesIO(contents)
         nparr = np.asarray(bytearray(stream.read()), dtype="uint8")
-        image = cv.imdecode(nparr, cv.IMREAD_COLOR)
+        image = cv.cvtColor(cv.imdecode(nparr, cv.IMREAD_COLOR),  cv.COLOR_BGR2RGB)
 
         # Преобразования с изображением (например, конвертация в grayscale)
         # Здесь можно добавить любые преобразования, которые вам нужны
-        processed_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+        pred = face_detect.predict(image)[0]
+
+        for detect in pred.boxes.data.tolist():
+            minx, miny, maxx, maxy, score, class_id = detect
+            processed_image =  cv.rectangle(image, (int(minx), int(miny)),
+                        (int(maxx), int(maxy)), (0, 0, 255), 2)
+            
 
         processed_images.append(processed_image)
 
