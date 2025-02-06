@@ -44,8 +44,7 @@ async def create_files(files: list[UploadFile] = File(...)):
         nparr = np.asarray(bytearray(stream.read()), dtype="uint8")
         image = cv.cvtColor(cv.imdecode(nparr, cv.IMREAD_COLOR),  cv.COLOR_BGR2RGB)
 
-        # Преобразования с изображением (например, конвертация в grayscale)
-        # Здесь можно добавить любые преобразования, которые вам нужны
+        
         pred = face_detect.predict(image)[0]
 
         for detect in pred.boxes.data.tolist():
