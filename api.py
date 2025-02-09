@@ -9,7 +9,7 @@ from ultralytics import YOLO
 import cv2 as cv
 
 app = FastAPI()
-face_detect = YOLO("yolo11s.pt")
+face_detect = YOLO("last.pt")
 
 
 @app.post("/file")
@@ -32,6 +32,24 @@ async def create_files(file: bytes = File(...)):
 
     return output
 
+
+
+@app.post("/answer")
+async def create_files(file: bytes = File(...)):
+    stream = io.BytesIO(file)
+    
+    nparr = np.asarray(bytearray(stream.read()), dtype="uint8")
+    image = cv.cvtColor(cv.imdecode(nparr, cv.IMREAD_COLOR),  cv.COLOR_BGR2RGB)
+
+    pred = face_detect.predict(image)[0]
+
+    answer = []
+
+    for detect in pred.boxes.data.tolist():
+            answer.append(detect)
+
+
+    return f'answer: {answer}'
 
 
 @app.post("/files")
