@@ -48,7 +48,6 @@ async def create_files(file: bytes = File(...)):
     for detect in pred.boxes.data.tolist():
             answer.append(detect)
 
-
     return f'answer: {answer}'
 
 
@@ -94,11 +93,11 @@ async def create_files(files: list[UploadFile] = File(...)):
 @app.get("/")
 async def main():
     content = """
-<body>
-<form action="/files/" enctype="multipart/form-data" method="post">
-<input name="files" type="file" multiple>
-<input type="submit">
-</body>
+    <body>
+        <form action="/files" enctype="multipart/form-data" method="post">
+        <input name="files" type="file" multiple>
+        <input type="submit">
+    </body>
     """
     return HTMLResponse(content=content)
 
